@@ -5,11 +5,12 @@ module BareMetal
     include PackageHelper
     include SwapHelper
 
-    attr_reader :host, :username
+    attr_reader :host, :username, :password
 
     def initialize(options)
       @host = options.fetch(:host)
       @username = options.fetch(:username)
+      @password = options.fetch(:password, nil)
     end
 
     def upload(local_path, remote_path, options={})
@@ -26,11 +27,19 @@ module BareMetal
     private
 
     def ssh_client
-      @ssh_client ||= Net::SSH.start(host, username)
+      @ssh_client ||= Net::SSH.start(host, username, connection_options)
     end
 
     def scp_client
-      @scp_client ||= Net::SCP.start(host, username)
+      @scp_client ||= Net::SCP.start(host, username, connection_options)
+    end
+
+    def connection_options
+      options = {}
+
+      options[:password] = password unless password.nil?
+
+      options
     end
   end
 end
